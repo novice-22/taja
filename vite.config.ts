@@ -29,9 +29,9 @@ function cspPlugin(): Plugin {
   }
 }
 
-// GitHub Pages 배포 시: 저장소 이름(novice-22/taja)에 맞춰 base 를 '/taja/' 로 둔다.
-// 사용자/조직 페이지(username.github.io)나 커스텀 도메인이면 '/' 로 바꾼다.
+// 커스텀 도메인(taja.novice-22.com)에서 사이트는 루트(/)로 제공되므로 base 는 '/'.
+// (저장소 경로 novice-22.github.io/taja/ 로 쓸 땐 '/taja/' 로 되돌린다.)
 export default defineConfig({
-  base: '/taja/',
+  base: '/',
   plugins: [react(), cspPlugin()],
 })
