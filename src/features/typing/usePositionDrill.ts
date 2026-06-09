@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { jamoFromEvent } from './dubeolsik'
+import { jamoFromEvent, keyFromEvent } from './dubeolsik'
+import type { Lang } from '../../settings'
 
 /**
  * 자리연습 훅. 물리 키(두벌식)로 자모를 판정한다.
@@ -27,6 +28,7 @@ export interface UsePositionDrillResult {
 
 export function usePositionDrill(
   seq: string[],
+  lang: Lang,
   onComplete?: (r: PosComplete) => void,
 ): UsePositionDrillResult {
   const [pos, setPos] = useState(0)
@@ -42,6 +44,7 @@ export function usePositionDrill(
   const finishedRef = useRef(false)
   const posRef = useRef(0)
   const seqRef = useRef(seq)
+  const langRef = useRef(lang)
   const onCompleteRef = useRef(onComplete)
 
   useEffect(() => {
@@ -50,6 +53,9 @@ export function usePositionDrill(
   useEffect(() => {
     seqRef.current = seq
   }, [seq])
+  useEffect(() => {
+    langRef.current = lang
+  }, [lang])
 
   const total = seq.length
   const current = seq[pos] ?? ''
@@ -89,7 +95,7 @@ export function usePositionDrill(
       if (finishedRef.current) return
       if (e.repeat) return // 키 꾹 누름(자동반복) 무시 → 타수 뻥튀기 방지
       if (e.ctrlKey || e.metaKey || e.altKey) return
-      const jamo = jamoFromEvent(e)
+      const jamo = langRef.current === 'ko' ? jamoFromEvent(e) : keyFromEvent(e)
       if (jamo === null) return
       e.preventDefault()
       if (startRef.current === null) {

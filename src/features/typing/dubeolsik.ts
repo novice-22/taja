@@ -49,3 +49,13 @@ export function jamoFromEvent(e: KeyboardEvent): string | null {
   if (!m) return null
   return e.shiftKey ? m[1] : m[0]
 }
+
+/**
+ * 영문 자리연습용: 물리 키(e.code)에서 영문 글자/숫자/기호를 얻는다.
+ * e.code 기반이라 한글 IME 가 켜져 있어도 정확하다. 글자는 소문자로 통일.
+ */
+export function keyFromEvent(e: KeyboardEvent): string | null {
+  if (/^Key[A-Z]$/.test(e.code)) return e.code.slice(3).toLowerCase()
+  if (SYMBOL_CODES.has(e.code) && e.key.length === 1) return e.key
+  return null
+}

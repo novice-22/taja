@@ -40,7 +40,7 @@ export default function LinePractice({
           ref={inputRef}
           className="typing-input line-input"
           rows={1}
-          placeholder="> 위 문장을 보고 여기에 입력"
+          placeholder=""
           autoFocus
           spellCheck={false}
           autoComplete="off"

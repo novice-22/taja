@@ -36,8 +36,9 @@ export function compareCharsLive(target: string, typed: string, composing: boole
   const t = toChars(target)
   const u = toChars(typed)
   return t.map((ch, i) => {
-    // 조합 중인 글자 = 캐럿 위치(색 없음). 캐럿은 여기 딱 하나만.
-    if (composing && i === u.length - 1) return 'current'
+    // 조합 중인 마지막 글자: 이미 목표와 똑같으면 즉시 정타(초록), 아직 만드는 중이면 중립(빨강 X).
+    // → '바나나' 다 치면 끝 글자도 바로 초록, 'ㄴ'처럼 미완성일 땐 색 안 들어옴.
+    if (composing && i === u.length - 1) return u[i] === ch ? 'correct' : 'current'
     if (i < u.length) return u[i] === ch ? 'correct' : 'incorrect'
     // 조합이 아닐 때만 다음 자리에 캐럿
     if (i === u.length && !composing) return 'current'

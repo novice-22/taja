@@ -703,41 +703,40 @@ a {
   flex-wrap: wrap;
 }
 .word-current {
-  background: var(--accent);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
   border-radius: 16px;
-  padding: clamp(16px, 2.5vw, 26px) clamp(24px, 4vw, 48px);
+  padding: clamp(16px, 2.5vw, 26px) clamp(28px, 5vw, 56px);
   text-align: center;
-  box-shadow: var(--glow);
-  color: #04130b;
-}
-.word-current .card-label {
-  color: inherit;
+  color: var(--text);
 }
 .word-big {
   font-size: calc(var(--font-scale, 1) * clamp(36px, 7vw, 72px));
   font-weight: 800;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
 }
-/* 카드(accent 배경) 위 글자 색 대비 */
+/* 글자별 상태가 또렷하게 보이게: 안 친 글자=흐림 / 맞음=초록 / 오타=빨강 */
 .word-big .pchar {
-  color: #04130b;
+  color: var(--muted);
 }
-.word-big .pchar.pending {
-  color: rgba(4, 19, 11, 0.45);
+.word-big .pchar.correct {
+  color: var(--correct);
+  text-shadow: var(--glow);
 }
 .word-big .pchar.incorrect {
-  color: #fff;
-  background: var(--incorrect);
+  color: var(--incorrect);
+  background: var(--incorrect-bg);
+  border-radius: 6px;
+}
+.word-big .pchar.current {
+  color: var(--muted);
 }
 /* 낱말 카드에서는 캐럿(|) 표시하지 않음 */
 .word-big .pchar.current::before {
   content: none;
 }
-:root[data-theme='light'] .word-big .pchar {
-  color: #fff;
-}
-:root[data-theme='light'] .word-big .pchar.pending {
-  color: rgba(255, 255, 255, 0.6);
+:root[data-theme='light'] .word-big .pchar.correct {
+  color: var(--text);
 }
 .word-upcoming {
   display: flex;

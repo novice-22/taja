@@ -26,6 +26,27 @@ export default function SettingsModal({
       <div className="modal settings-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
         <h2>⚙ 설정</h2>
 
+        {/* 언어(한글/영어) — 모든 연습에 적용 */}
+        <div className="set-row">
+          <label>언어 (한/영)</label>
+          <div className="seg">
+            <button
+              type="button"
+              className={`seg-btn${s.lang === 'ko' ? ' active' : ''}`}
+              onClick={() => s.set('lang', 'ko')}
+            >
+              한글
+            </button>
+            <button
+              type="button"
+              className={`seg-btn${s.lang === 'en' ? ' active' : ''}`}
+              onClick={() => s.set('lang', 'en')}
+            >
+              English
+            </button>
+          </div>
+        </div>
+
         {/* 테마 */}
         <div className="set-row">
           <label>테마</label>

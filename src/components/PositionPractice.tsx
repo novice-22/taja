@@ -1,5 +1,6 @@
 import LiveStats from './LiveStats'
 import { usePositionDrill, type PosComplete } from '../features/typing/usePositionDrill'
+import { useSettings } from '../settings'
 
 /**
  * 자리연습: 자모를 가로 큐로 보여준다(현재 크게, 다음은 흐리게).
@@ -12,7 +13,8 @@ export default function PositionPractice({
   seq: string[]
   onComplete: (r: PosComplete) => void
 }) {
-  const drill = usePositionDrill(seq, onComplete)
+  const { lang } = useSettings()
+  const drill = usePositionDrill(seq, lang, onComplete)
   const progress = drill.total === 0 ? 0 : Math.round((drill.pos / drill.total) * 100)
 
   return (

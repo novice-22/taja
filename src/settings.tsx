@@ -9,15 +9,17 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
  * (테마(다크/라이트)는 theme.ts 에서 따로 관리)
  */
 export type FontChoice = 'mono' | 'sans' | 'serif'
+export type Lang = 'ko' | 'en'
 
 export interface Settings {
+  lang: Lang
   fontScale: number
   font: FontChoice
   musicVolume: number
   musicOn: boolean
 }
 
-const DEFAULTS: Settings = { fontScale: 1, font: 'mono', musicVolume: 40, musicOn: false }
+const DEFAULTS: Settings = { lang: 'ko', fontScale: 1, font: 'mono', musicVolume: 40, musicOn: false }
 const KEY = 'settings'
 
 const FONT_STACK: Record<FontChoice, string> = {

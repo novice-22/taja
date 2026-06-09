@@ -4,9 +4,12 @@ import { countKeystrokes, toChars } from './hangul'
 
 /**
  * 단위(단어/문장) 입력 훅. 입력칸(textarea)에 치며, 현재 단위는 글자별로 색이 칠해진다.
+ * 모든 모드 공통: 다 친 뒤 Enter 로만 다음(단어/문장)으로 진행한다.
  *
- * - kind='token'(낱말): 스페이스/엔터로 단어 제출 → 다음 단어
- * - kind='line'(짧은글/긴글): 문장을 끝까지 치면 자동으로 다음 문장(엔터로도 넘김)
+ * 색칠 규칙(정확):
+ *  - 조합(IME) 중인 마지막 글자는 색을 넣지 않는다(완성 전엔 불 안 들어옴).
+ *  - 완성·확정된 글자만 정/오타 색. 지우면 즉시 색이 사라진다.
+ *  → 이를 위해 색 계산은 비동기 state 대신 동기 ref(composingRef)로 즉시 수행한다.
  */
 export interface UnitComplete {
   speed: number
@@ -47,9 +50,9 @@ export function useUnitDrill(
 ): UseUnitDrillResult {
   const [pos, setPos] = useState(0)
   const [input, setInput] = useState('')
+  const [charStates, setCharStates] = useState<CharState[]>([])
   const [startTime, setStartTime] = useState<number | null>(null)
   const [finished, setFinished] = useState(false)
-  const [composing, setComposing] = useState(false)
   const [tick, setTick] = useState(0)
 
   const keystrokesRef = useRef(0)
@@ -63,6 +66,7 @@ export function useUnitDrill(
   const submitOnEndRef = useRef(false)
   const posRef = useRef(0)
   const inputRef = useRef('')
+  const lockRef = useRef(0) // 이미 초록 확정된 앞 글자 수(조합 흔들림에도 유지 → 깜빡임 방지)
   const unitsRef = useRef(units)
   const onCompleteRef = useRef(onComplete)
 
@@ -76,10 +80,26 @@ export function useUnitDrill(
   const total = units.length
   const current = units[pos] ?? ''
   const upcoming = units.slice(pos + 1, pos + (kind === 'token' ? 6 : 4))
-  const charStates = useMemo(
-    () => compareCharsLive(current, input, composing),
-    [current, input, composing],
-  )
+
+  // 현재 입력값을 동기 조합상태(composingRef)로 즉시 색칠 → 상태 지연으로 인한 오작동 없음
+  const recolor = useCallback((value: string) => {
+    const target = unitsRef.current[posRef.current] ?? ''
+    const u = toChars(value)
+    const states = compareCharsLive(target, value, composingRef.current)
+    // 받침 이동(사→삭→사고) 같은 조합 흔들림에도 이미 확정된 앞 글자는 초록 유지 → 깜빡임 방지
+    for (let i = 0; i < lockRef.current && i < states.length; i++) {
+      if (u.length > i) states[i] = 'correct'
+    }
+    let lc = 0
+    while (lc < states.length && states[lc] === 'correct') lc++
+    lockRef.current = Math.min(lc, u.length) // 삭제하면 그만큼 잠금 해제
+    setCharStates(states)
+  }, [])
+
+  // 단어/문장(pos)이 바뀌면(또는 첫 렌더) 빈 입력 기준으로 색 초기화
+  useEffect(() => {
+    recolor(inputRef.current)
+  }, [pos, recolor])
 
   const cpm = useMemo(() => {
     if (startTime === null) return 0
@@ -139,33 +159,37 @@ export function useUnitDrill(
       posRef.current = np
       inputRef.current = ''
       setInput('')
+      recolor('')
       setPos(np)
       if (np >= unitsRef.current.length) finish()
     },
-    [finish, kind],
+    [finish, kind, recolor],
   )
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       if (finishedRef.current) return
-      let value = e.target.value
-      // 낱말엔 공백이 없으므로 공백 입력은 무시(엔터로만 제출). 짧은글/긴글은 공백도 글자.
-      if (kind === 'token') value = value.replace(/ /g, '')
+      const value = e.target.value
       if (startRef.current === null && value.trim().length > 0) {
         startRef.current = Date.now()
         setStartTime(startRef.current)
       }
       inputRef.current = value
       setInput(value)
+      recolor(value)
     },
-    [kind],
+    [recolor],
   )
 
-  // 모든 모드: 엔터로만 다음(단어/문장)으로 진행. 다 친 뒤 오타를 고치고 누를 수 있음.
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       // 키 꾹 누름(OS 자동반복) 차단 → 타수 뻥튀기 방지
       if (e.repeat) {
+        e.preventDefault()
+        return
+      }
+      // 낱말엔 공백이 없으므로 스페이스 입력 무시(엔터로만 제출). 짧은글/긴글은 공백도 글자.
+      if (kind === 'token' && e.key === ' ') {
         e.preventDefault()
         return
       }
@@ -179,7 +203,7 @@ export function useUnitDrill(
       }
       if (inputRef.current.length > 0) advance(inputRef.current)
     },
-    [advance],
+    [advance, kind],
   )
 
   // 붙여넣기/드롭 차단 → 한 번에 긴 텍스트 넣어 타수 뻥튀기 방지
@@ -192,32 +216,31 @@ export function useUnitDrill(
 
   const handleCompositionStart = useCallback(() => {
     composingRef.current = true
-    setComposing(true)
-  }, [])
+    recolor(inputRef.current)
+  }, [recolor])
 
   const handleCompositionEnd = useCallback(
     (e: React.CompositionEvent<HTMLTextAreaElement>) => {
       composingRef.current = false
-      setComposing(false)
-      let value = e.currentTarget.value
-      if (kind === 'token') value = value.replace(/ /g, '')
+      const value = e.currentTarget.value
       inputRef.current = value
       setInput(value)
+      recolor(value)
       // 조합 중 누른 엔터가 예약돼 있으면 지금 제출
       if (submitOnEndRef.current) {
         submitOnEndRef.current = false
         if (value.length > 0) advance(value)
       }
     },
-    [advance, kind],
+    [advance, recolor],
   )
 
   const reset = useCallback(() => {
     setPos(0)
     setInput('')
+    setCharStates([])
     setStartTime(null)
     setFinished(false)
-    setComposing(false)
     setTick(0)
     keystrokesRef.current = 0
     correctRef.current = 0
@@ -230,6 +253,7 @@ export function useUnitDrill(
     submitOnEndRef.current = false
     posRef.current = 0
     inputRef.current = ''
+    lockRef.current = 0
   }, [])
 
   return {
