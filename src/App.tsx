@@ -55,6 +55,8 @@ export default function App() {
         theme={theme}
         onToggleTheme={toggleTheme}
       />
+
+      <footer className="footer">© 2026 novice-22. All rights reserved.</footer>
     </div>
   )
 }

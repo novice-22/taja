@@ -43,3 +43,11 @@ npm run preview  # 빌드 결과물을 로컬에서 확인
    - 사용자 페이지(`username.github.io`)·커스텀 도메인: `base: '/'`
 2. GitHub 저장소 → Settings → Pages → Source 를 **GitHub Actions** 로 설정.
 3. `main` 브랜치에 push → `.github/workflows/deploy.yml` 가 자동 빌드·배포.
+
+## 저작권 / 라이선스
+
+© 2026 novice-22. All rights reserved. (모든 권리 보유)
+
+본 저장소의 소스 코드·디자인은 **독점 라이선스**이며, 저작권자의 사전 서면 허가 없이
+복제·수정·배포·사용을 **금지**합니다. 자세한 내용은 [LICENSE](LICENSE) 참조.
+(애국가·서시·진달래꽃 등 일부 텍스트는 저작권 만료된 공용 콘텐츠입니다.)
