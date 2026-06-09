@@ -44,6 +44,8 @@ export default function LinePractice({
           autoFocus
           spellCheck={false}
           autoComplete="off"
+          autoCapitalize="none"
+          autoCorrect="off"
           {...drill.inputProps}
         />
 

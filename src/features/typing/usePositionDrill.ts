@@ -23,6 +23,7 @@ export interface UsePositionDrillResult {
   wrong: boolean
   started: boolean
   finished: boolean
+  press: (key: string) => void
   reset: () => void
 }
 
@@ -90,20 +91,16 @@ export function usePositionDrill(
     })
   }, [])
 
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
+  // 키 하나 판정 — PC(물리키)·모바일(입력) 공통 진입점
+  const press = useCallback(
+    (key: string) => {
       if (finishedRef.current) return
-      if (e.repeat) return // 키 꾹 누름(자동반복) 무시 → 타수 뻥튀기 방지
-      if (e.ctrlKey || e.metaKey || e.altKey) return
-      const jamo = langRef.current === 'ko' ? jamoFromEvent(e) : keyFromEvent(e)
-      if (jamo === null) return
-      e.preventDefault()
       if (startRef.current === null) {
         startRef.current = Date.now()
         setStartTime(startRef.current)
       }
       const target = seqRef.current[posRef.current]
-      if (jamo === target) {
+      if (key === target) {
         correctRef.current++
         setWrong(false)
         const np = posRef.current + 1
@@ -114,10 +111,24 @@ export function usePositionDrill(
         errorRef.current++
         setWrong(true)
       }
+    },
+    [finish],
+  )
+
+  // PC: 물리 키(e.code)로 판정 (한글 IME 켜져 있어도 정확)
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (finishedRef.current) return
+      if (e.repeat) return // 키 꾹 누름(자동반복) 무시 → 타수 뻥튀기 방지
+      if (e.ctrlKey || e.metaKey || e.altKey) return
+      const jamo = langRef.current === 'ko' ? jamoFromEvent(e) : keyFromEvent(e)
+      if (jamo === null) return
+      e.preventDefault()
+      press(jamo)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [finish])
+  }, [press])
 
   const reset = useCallback(() => {
     setPos(0)
@@ -143,6 +154,7 @@ export function usePositionDrill(
     wrong,
     started: startTime !== null,
     finished,
+    press,
     reset,
   }
 }

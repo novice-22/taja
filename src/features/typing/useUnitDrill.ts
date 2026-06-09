@@ -66,7 +66,6 @@ export function useUnitDrill(
   const submitOnEndRef = useRef(false)
   const posRef = useRef(0)
   const inputRef = useRef('')
-  const lockRef = useRef(0) // 이미 초록 확정된 앞 글자 수(조합 흔들림에도 유지 → 깜빡임 방지)
   const unitsRef = useRef(units)
   const onCompleteRef = useRef(onComplete)
 
@@ -81,19 +80,11 @@ export function useUnitDrill(
   const current = units[pos] ?? ''
   const upcoming = units.slice(pos + 1, pos + (kind === 'token' ? 6 : 4))
 
-  // 현재 입력값을 동기 조합상태(composingRef)로 즉시 색칠 → 상태 지연으로 인한 오작동 없음
+  // 현재 입력값을 동기 조합상태(composingRef)로 즉시 색칠 → 상태 지연으로 인한 오작동 없음.
+  // 받침 이동(사→삭→사고)·삭제는 compareCharsLive 의 자모 관계 판별로 정확히 처리된다(별도 잠금 불필요).
   const recolor = useCallback((value: string) => {
     const target = unitsRef.current[posRef.current] ?? ''
-    const u = toChars(value)
-    const states = compareCharsLive(target, value, composingRef.current)
-    // 받침 이동(사→삭→사고) 같은 조합 흔들림에도 이미 확정된 앞 글자는 초록 유지 → 깜빡임 방지
-    for (let i = 0; i < lockRef.current && i < states.length; i++) {
-      if (u.length > i) states[i] = 'correct'
-    }
-    let lc = 0
-    while (lc < states.length && states[lc] === 'correct') lc++
-    lockRef.current = Math.min(lc, u.length) // 삭제하면 그만큼 잠금 해제
-    setCharStates(states)
+    setCharStates(compareCharsLive(target, value, composingRef.current))
   }, [])
 
   // 단어/문장(pos)이 바뀌면(또는 첫 렌더) 빈 입력 기준으로 색 초기화
@@ -253,7 +244,6 @@ export function useUnitDrill(
     submitOnEndRef.current = false
     posRef.current = 0
     inputRef.current = ''
-    lockRef.current = 0
   }, [])
 
   return {

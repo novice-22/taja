@@ -23,6 +23,27 @@ export function countKeystrokes(text: string): number {
   return count
 }
 
+/**
+ * 조합 중인 글자와 목표 글자의 자모 관계.
+ *  - 'match'   : 똑같음. 또는 입력이 목표보다 김(받침 넘침: 입력 '삭'→목표 '사', ㄱ은 다음 음절로) → 정타 유지
+ *  - 'building': 입력이 목표의 접두(아직 만드는 중: '가'→'각', 'ㄷ'→'도') → 중립
+ *  - 'wrong'   : 완전히 다른 길('강'→'무') → 오타
+ */
+export function composingMatch(typed: string, target: string): 'match' | 'building' | 'wrong' {
+  if (typed === target) return 'match'
+  let dt: string
+  let dg: string
+  try {
+    dt = disassemble(typed)
+    dg = disassemble(target)
+  } catch {
+    return 'wrong'
+  }
+  if (dg.startsWith(dt)) return 'building' // 입력이 목표의 접두 → 만드는 중
+  if (dt.startsWith(dg)) return 'match' // 목표가 입력의 접두 → 받침 넘침(정타 유지)
+  return 'wrong'
+}
+
 /** 완성형 한글 음절(가~힣) 여부 */
 export function isHangulSyllable(ch: string): boolean {
   const code = ch.codePointAt(0)

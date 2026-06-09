@@ -46,10 +46,12 @@ export default function TokenPractice({
         ref={inputRef}
         className="typing-input flow-input"
         rows={1}
-        placeholder="> 단어 입력 후 Space/Enter"
+        placeholder="> 단어 입력 후 Enter"
         autoFocus
         spellCheck={false}
         autoComplete="off"
+        autoCapitalize="none"
+        autoCorrect="off"
         {...drill.inputProps}
       />
 

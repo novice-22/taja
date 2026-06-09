@@ -16,7 +16,10 @@ export interface Track {
 
 export const TRACKS: Track[] = Object.entries(files)
   .map(([path, src]) => ({
-    name: (path.split('/').pop() ?? 'track').replace(/\.[^.]+$/, ''),
+    name: (path.split('/').pop() ?? 'track')
+      .replace(/\.[^.]+$/, '') // 확장자 제거
+      .replace(/[-_]+/g, ' ') // 하이픈/언더바 → 공백 (보기 좋게)
+      .trim(),
     src: src as string,
   }))
   .sort((a, b) => a.name.localeCompare(b.name))
