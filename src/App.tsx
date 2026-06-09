@@ -22,7 +22,7 @@ export default function App() {
     <div className="app">
       <header className="header">
         <NavLink to="/" className="logo">
-          한타<span className="blink">_</span>
+          타자연습<span className="blink">_</span>
         </NavLink>
         <nav className="nav">
           <NavLink to="/" end>

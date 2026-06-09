@@ -58,7 +58,7 @@ export default function TokenPractice({
           <b>낱말</b> · {Math.min(drill.pos + 1, drill.total)}/{drill.total}
         </span>
         <span className="hint-keys">
-          <kbd>Space</kbd>/<kbd>Enter</kbd> 다음 단어 &nbsp; <kbd>Esc</kbd> 다시
+          <kbd>Enter</kbd> 다음 단어 &nbsp; <kbd>Esc</kbd> 다시
         </span>
       </div>
     </>

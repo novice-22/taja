@@ -145,50 +145,26 @@ export function useUnitDrill(
     [finish, kind],
   )
 
-  // line: 길이를 다 채우면 자동 진행
-  const maybeAutoAdvance = useCallback(
-    (value: string) => {
-      if (kind !== 'line') return false
-      if (composingRef.current) return false
-      const target = unitsRef.current[posRef.current] ?? ''
-      if (toChars(target).length === 0) return false
-      if (toChars(value).length < toChars(target).length) return false
-      advance(value)
-      return true
-    },
-    [advance, kind],
-  )
-
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       if (finishedRef.current) return
-      const value = e.target.value
+      let value = e.target.value
+      // 낱말엔 공백이 없으므로 공백 입력은 무시(엔터로만 제출). 짧은글/긴글은 공백도 글자.
+      if (kind === 'token') value = value.replace(/ /g, '')
       if (startRef.current === null && value.trim().length > 0) {
         startRef.current = Date.now()
         setStartTime(startRef.current)
       }
-      if (kind === 'token') {
-        const spaceIdx = value.indexOf(' ')
-        if (spaceIdx >= 0) {
-          const part = value.slice(0, spaceIdx)
-          if (part.length > 0) advance(part)
-          else {
-            inputRef.current = ''
-            setInput('')
-          }
-          return
-        }
-      }
       inputRef.current = value
       setInput(value)
-      maybeAutoAdvance(value)
     },
-    [advance, maybeAutoAdvance, kind],
+    [kind],
   )
 
+  // 모든 모드: 엔터로만 다음(단어/문장)으로 진행. 다 친 뒤 오타를 고치고 누를 수 있음.
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      // 키 꾹 누름(OS 자동반복) 차단 → 스페이스/글자 꾹 눌러 타수 뻥튀기 방지
+      // 키 꾹 누름(OS 자동반복) 차단 → 타수 뻥튀기 방지
       if (e.repeat) {
         e.preventDefault()
         return
@@ -196,18 +172,14 @@ export function useUnitDrill(
       if (e.key !== 'Enter') return
       e.preventDefault()
       if (finishedRef.current) return
+      // 조합 중 엔터면 조합 확정 후 제출되도록 예약
       if (e.nativeEvent.isComposing || composingRef.current) {
         submitOnEndRef.current = true
         return
       }
-      if (kind === 'token') {
-        if (inputRef.current.length > 0) advance(inputRef.current)
-      } else {
-        // line: 엔터로 현재 문장 넘김(부분 입력도 허용)
-        if (inputRef.current.length > 0) advance(inputRef.current)
-      }
+      if (inputRef.current.length > 0) advance(inputRef.current)
     },
-    [advance, kind],
+    [advance],
   )
 
   // 붙여넣기/드롭 차단 → 한 번에 긴 텍스트 넣어 타수 뻥튀기 방지
@@ -227,16 +199,17 @@ export function useUnitDrill(
     (e: React.CompositionEvent<HTMLTextAreaElement>) => {
       composingRef.current = false
       setComposing(false)
-      const value = e.currentTarget.value
+      let value = e.currentTarget.value
+      if (kind === 'token') value = value.replace(/ /g, '')
       inputRef.current = value
+      setInput(value)
+      // 조합 중 누른 엔터가 예약돼 있으면 지금 제출
       if (submitOnEndRef.current) {
         submitOnEndRef.current = false
         if (value.length > 0) advance(value)
-        return
       }
-      maybeAutoAdvance(value)
     },
-    [advance, maybeAutoAdvance],
+    [advance, kind],
   )
 
   const reset = useCallback(() => {

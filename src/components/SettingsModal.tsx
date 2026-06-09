@@ -83,13 +83,7 @@ export default function SettingsModal({
           </div>
         </div>
 
-        <p className="set-hint">
-          배경음악은 <code>src/assets/music</code> 에 음악 파일을 넣으면 헤더 ▶ 로 재생돼요.
-          <br />
-          한/영(영문 타자)은 곧 추가될 예정이에요.
-        </p>
-
-        <div className="btn-row" style={{ justifyContent: 'center', marginTop: 8 }}>
+        <div className="btn-row" style={{ justifyContent: 'center', marginTop: 16 }}>
           <button className="btn primary" type="button" onClick={onClose}>
             닫기
           </button>

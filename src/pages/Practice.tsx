@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ModeTabs from '../components/ModeTabs'
 import ResultModal from '../components/ResultModal'
 import PositionPractice from '../components/PositionPractice'
@@ -31,15 +31,18 @@ export default function Practice() {
   const [theme, setTheme] = useState<string>(WORD_THEME_NAMES[0])
   const [shortTopic, setShortTopic] = useState<string>(SHORT_TOPIC_NAMES[0])
   const [longTopic, setLongTopic] = useState<string>(LONG_TOPIC_NAMES[0])
+  const [reroll, setReroll] = useState(0) // 랜덤 다시 뽑기 트리거(같은 탭 다시 눌러도 새로 뽑힘)
   const [result, setResult] = useState<Completion | null>(null)
+  const resultAtRef = useRef(0) // 완료 시각 — 직후의 Enter(마지막 글자 제출 Enter)가 다음 라운드를 트리거하는 것 방지
 
   const seq = useMemo(() => makeJamoSeq(category, index), [category, index])
-  const words = useMemo(() => makeWords(theme, index), [theme, index])
-  const shortLines = useMemo(() => makeShort(shortTopic, index), [shortTopic, index])
-  const longText = useMemo(() => makeLong(longTopic, index), [longTopic, index])
+  const words = useMemo(() => makeWords(theme, index), [theme, index, reroll])
+  const shortLines = useMemo(() => makeShort(shortTopic, index), [shortTopic, index, reroll])
+  const longText = useMemo(() => makeLong(longTopic, index), [longTopic, index, reroll])
 
   const handleComplete = useCallback(
     (info: Completion) => {
+      resultAtRef.current = Date.now()
       setResult(info)
       void saveRecord({ speed: info.speed, accuracy: info.accuracy, mode })
     },
@@ -63,11 +66,12 @@ export default function Practice() {
     setIndex((i) => i + 1)
   }, [])
 
-  // 서브탭(주제/자리) 변경 공통 처리
+  // 서브탭(주제/자리) 변경 공통 처리. 랜덤 탭을 다시 눌러도 새로 뽑히도록 reroll 증가.
   const pickSub = useCallback((fn: () => void) => {
     fn()
     setAttempt(0)
     setIndex(0)
+    setReroll((r) => r + 1)
     setResult(null)
   }, [])
 
@@ -78,6 +82,8 @@ export default function Practice() {
         e.preventDefault()
         handleRetry()
       } else if (e.key === 'Enter' && result) {
+        // 완료 직후(마지막 글자 제출용 Enter)는 무시 — 결과창이 바로 닫히고 초기화되는 문제 방지
+        if (Date.now() - resultAtRef.current < 350) return
         e.preventDefault()
         handleNext()
       }
@@ -87,7 +93,7 @@ export default function Practice() {
   }, [handleRetry, handleNext, result])
 
   // 모드별 자식 (key 가 바뀌면 리마운트 = 초기화)
-  const childKey = `${mode}-${category}-${theme}-${shortTopic}-${longTopic}-${index}-${attempt}`
+  const childKey = `${mode}-${category}-${theme}-${shortTopic}-${longTopic}-${index}-${attempt}-${reroll}`
   let child: React.ReactNode
   let subTabs: { items: readonly string[]; value: string; onPick: (v: string) => void } | null = null
 

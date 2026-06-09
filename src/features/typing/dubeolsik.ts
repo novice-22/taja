@@ -34,10 +34,17 @@ const DUBEOLSIK: Record<string, [string, string]> = {
   KeyM: ['ㅡ', 'ㅡ'],
 }
 
-/** 눌린 키 이벤트에서 두벌식 자모(또는 숫자)를 얻는다. 매핑 없으면 null. */
+// 숫자·기호자리: e.key 가 Shift 를 반영한 실제 문자('1' 또는 '!')를 준다.
+const SYMBOL_CODES = new Set([
+  'Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5',
+  'Digit6', 'Digit7', 'Digit8', 'Digit9', 'Digit0',
+  'Minus', 'Equal', 'Comma', 'Period', 'Slash', 'Semicolon', 'Quote',
+])
+
+/** 눌린 키 이벤트에서 두벌식 자모(또는 숫자/기호)를 얻는다. 매핑 없으면 null. */
 export function jamoFromEvent(e: KeyboardEvent): string | null {
-  // 숫자자리용: Digit0~9 → '0'~'9' (Shift 무시, IME 영향 없음)
-  if (/^Digit[0-9]$/.test(e.code)) return e.code.slice(5)
+  // 숫자·기호: 실제 입력 문자 그대로(Shift 반영). 한 글자(IME 비조합)만 인정.
+  if (SYMBOL_CODES.has(e.code) && e.key.length === 1) return e.key
   const m = DUBEOLSIK[e.code]
   if (!m) return null
   return e.shiftKey ? m[1] : m[0]

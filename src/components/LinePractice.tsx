@@ -62,7 +62,7 @@ export default function LinePractice({
           <b>{title}</b> · {Math.min(drill.pos + 1, drill.total)}/{drill.total}문장
         </span>
         <span className="hint-keys">
-          끝까지 치면 자동 · <kbd>Enter</kbd> 넘김 · <kbd>Esc</kbd> 다시
+          <kbd>Enter</kbd> 다음 줄 · <kbd>Esc</kbd> 다시
         </span>
       </div>
     </>

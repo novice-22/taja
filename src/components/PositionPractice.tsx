@@ -19,6 +19,11 @@ export default function PositionPractice({
     <>
       <LiveStats cpm={drill.cpm} accuracy={drill.accuracy} progress={progress} />
 
+      {/* 터치 기기 안내: 자리연습은 물리 키보드로 키를 직접 판정하므로 폰/태블릿에선 동작하지 않음 */}
+      <div className="touch-only-note">
+        ⌨ 자리연습은 PC 키보드 전용이에요. 모바일에선 낱말·짧은글·긴글을 이용해 주세요.
+      </div>
+
       <div className="stage-main">
         <div className="jamo-queue">
           <div className={`jamo-current${drill.wrong ? ' wrong' : ''}`}>

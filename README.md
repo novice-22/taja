@@ -1,6 +1,7 @@
-# 한타 (hantype) · 한글 타자연습
+# 타자연습 (taja)
 
 서버 없이 브라우저만으로 동작하는 한글 타자연습 웹앱. GitHub Pages에 정적 배포한다.
+사이트: https://taja.novice-22.com
 
 ## 기술 스택
 

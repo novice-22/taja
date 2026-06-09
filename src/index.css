@@ -58,11 +58,13 @@ body,
 #root {
   margin: 0;
   min-height: 100vh;
+  min-height: 100dvh; /* 모바일 주소창 고려(동적 뷰포트) */
   width: 100%;
 }
 
 body {
   background-color: var(--bg);
+  overflow-x: hidden; /* 가로 스크롤(레이아웃 깨짐) 방지 */
   /* 은은한 그리드(터미널 느낌). 고정 배경이라 성능 영향 없음 */
   background-image: linear-gradient(var(--grid) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid) 1px, transparent 1px);
@@ -156,6 +158,7 @@ a {
   display: flex;
   flex-direction: column;
   min-height: calc(100vh - clamp(90px, 12vw, 140px));
+  min-height: calc(100dvh - clamp(90px, 12vw, 140px)); /* 모바일 동적 뷰포트 */
 }
 /* 문장/글자 영역이 가운데에서 남는 세로 공간을 채움 */
 .stage-main {
@@ -774,16 +777,19 @@ a {
 }
 .line-current {
   font-size: calc(var(--font-scale, 1) * clamp(20px, 2.6vw, 30px));
-  line-height: 1.9;
+  line-height: 1.7;
   word-break: keep-all;
   overflow-wrap: anywhere;
-  padding: 14px 16px;
+  padding: 14px 18px;
   background: var(--panel-2);
   border: 1px solid var(--border);
   border-radius: 10px;
 }
+/* 입력칸을 위 글자와 같은 크기·줄간격·여백으로 맞춰 위아래가 정렬되게 */
 .line-input {
-  line-height: 1.6;
+  font-size: calc(var(--font-scale, 1) * clamp(20px, 2.6vw, 30px));
+  line-height: 1.7;
+  padding: 14px 18px;
   resize: none;
 }
 .line-preview {
@@ -837,11 +843,41 @@ kbd {
   border-color: var(--accent-dim);
 }
 
-/* 좁은 화면: 통계 카드 한 줄 유지하되 글자만 작게(grid가 처리). 매우 좁으면 폰트 축소는 clamp가 담당 */
-@media (max-width: 420px) {
+/* ===== 모바일/좁은 화면 ===== */
+@media (max-width: 640px) {
+  .app {
+    padding: 12px;
+  }
+  .header {
+    gap: 8px;
+  }
+  .nav {
+    gap: 4px;
+  }
   .nav a {
-    padding: 7px 10px;
+    padding: 6px 9px;
     font-size: 13px;
+  }
+  .music-name {
+    display: none; /* 좁으면 곡 이름 숨기고 버튼만 */
+  }
+  .music-player {
+    max-width: none;
+  }
+  /* 모바일에선 억지로 화면 높이를 채우지 않음(주소창/키보드와 충돌 방지) */
+  .practice-stage {
+    min-height: auto;
+  }
+  .stage-main {
+    padding: 16px 0;
+  }
+  .mode-tab {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  .sub-tab {
+    padding: 6px 10px;
+    font-size: 12px;
   }
 }
 
@@ -963,4 +999,31 @@ kbd {
   color: var(--muted);
   border-top: 1px solid var(--border);
   letter-spacing: 0.3px;
+}
+
+/* 짧은글/긴글: 위쪽 목표 글자에는 캐럿(초록 커서) 표시 안 함 (아래 입력칸 커서로 충분) */
+.line-current .pchar.current::before {
+  content: none;
+}
+.line-current .pchar.current {
+  background: none;
+}
+
+/* 자리연습 터치 기기 안내 — 마우스/트랙패드(정밀 포인터) 환경에선 숨김 */
+.touch-only-note {
+  display: none;
+  background: var(--incorrect-bg);
+  color: var(--incorrect);
+  border: 1px solid var(--incorrect);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 10px;
+}
+@media (pointer: coarse) {
+  .touch-only-note {
+    display: block;
+  }
 }

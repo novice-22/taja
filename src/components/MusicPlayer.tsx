@@ -52,7 +52,8 @@ export default function MusicPlayer() {
         <audio
           ref={audioRef}
           src={current.src}
-          loop
+          loop={TRACKS.length <= 1}
+          preload="none"
           onEnded={next}
         />
       )}
