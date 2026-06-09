@@ -893,15 +893,20 @@ kbd {
 }
 .music-btn {
   background: none;
-  border: none;
+  border: 1px solid transparent;
+  border-radius: 5px;
   color: var(--text);
   font-size: 13px;
-  padding: 2px 4px;
+  padding: 2px 5px;
   line-height: 1;
 }
 .music-btn:disabled {
   color: var(--muted);
   cursor: default;
+}
+.music-btn.on {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
 }
 .music-name {
   font-size: 12px;
