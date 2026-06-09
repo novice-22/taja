@@ -25,20 +25,22 @@ export function compareChars(target: string, typed: string): CharState[] {
 
 /**
  * 입력 중(IME 조합) 상태를 고려한 글자별 상태.
- * 조합 중인 마지막 글자(아직 완성 안 됨)는 오타로 표시하지 않고 'current'(중립)로 둔다.
- * → 'ㅂ'만 친 상태에서 '바'가 빨갛게 뜨는 문제 방지. 글자가 완성된 뒤에만 정/오타 판정.
+ *
+ * 규칙(글자 단위로 완성된 뒤에만 색칠 + 캐럿은 항상 1개):
+ * - 조합 중인 마지막 글자(아직 만드는 중)는 정/오타 색을 넣지 않고 'current'(캐럿 위치)로만 둔다.
+ *   → 'ㅂ'→'바' 만드는 동안 색이 깜빡이지 않고, 캐럿도 내가 치는 그 자리에 정확히 있다.
+ * - 이미 완성된(확정된) 글자만 correct/incorrect 로 칠한다.
+ * - 조합이 아닐 때는 다음 칠 자리에 캐럿('current')을 둔다.
  */
 export function compareCharsLive(target: string, typed: string, composing: boolean): CharState[] {
   const t = toChars(target)
   const u = toChars(typed)
   return t.map((ch, i) => {
-    if (i < u.length) {
-      // 조합 중인 마지막 글자: 이미 맞으면 즉시 정타(초록)로, 아직 안 맞으면 오타 대신 중립.
-      // → 맞는 입력은 바로 반영되고, 'ㅂ'처럼 미완성 단계에서 빨갛게 뜨지 않음.
-      if (composing && i === u.length - 1) return u[i] === ch ? 'correct' : 'current'
-      return u[i] === ch ? 'correct' : 'incorrect'
-    }
-    if (i === u.length) return 'current'
+    // 조합 중인 글자 = 캐럿 위치(색 없음). 캐럿은 여기 딱 하나만.
+    if (composing && i === u.length - 1) return 'current'
+    if (i < u.length) return u[i] === ch ? 'correct' : 'incorrect'
+    // 조합이 아닐 때만 다음 자리에 캐럿
+    if (i === u.length && !composing) return 'current'
     return 'pending'
   })
 }

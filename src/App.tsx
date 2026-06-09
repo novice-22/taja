@@ -1,6 +1,8 @@
 import { lazy, Suspense, useState } from 'react'
 import { NavLink, Route, Routes } from 'react-router-dom'
 import Practice from './pages/Practice'
+import MusicPlayer from './components/MusicPlayer'
+import SettingsModal from './components/SettingsModal'
 import { applyTheme, getInitialTheme, type Theme } from './theme'
 
 // 기록 페이지(차트 라이브러리 Recharts 포함)는 방문할 때만 불러온다.
@@ -8,6 +10,7 @@ const Records = lazy(() => import('./pages/Records'))
 
 export default function App() {
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   function toggleTheme() {
     const next: Theme = theme === 'dark' ? 'light' : 'dark'
@@ -26,14 +29,15 @@ export default function App() {
             연습
           </NavLink>
           <NavLink to="/records">기록</NavLink>
+          <MusicPlayer />
           <button
-            className="theme-toggle"
-            onClick={toggleTheme}
+            className="theme-toggle gear"
+            onClick={() => setSettingsOpen(true)}
             type="button"
-            aria-label="테마 전환"
-            title={theme === 'dark' ? '라이트 모드로' : '다크 모드로'}
+            aria-label="설정"
+            title="설정"
           >
-            {theme === 'dark' ? '☀ LIGHT' : '☾ DARK'}
+            ⚙
           </button>
         </nav>
       </header>
@@ -44,6 +48,13 @@ export default function App() {
           <Route path="/records" element={<Records />} />
         </Routes>
       </Suspense>
+
+      <SettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+      />
     </div>
   )
 }

@@ -23,7 +23,7 @@
   --font-mono: 'JetBrains Mono', 'Fira Code', 'D2Coding', 'Cascadia Code',
     'Consolas', 'Malgun Gothic', monospace;
 
-  font-family: var(--font-mono);
+  font-family: var(--font-active, var(--font-mono));
   color: var(--text);
   color-scheme: dark;
 }
@@ -287,7 +287,7 @@ a {
 /* ===== 입력창 ===== */
 .typing-input {
   width: 100%;
-  font-size: clamp(16px, 2.6vw, 22px);
+  font-size: calc(var(--font-scale, 1) * clamp(16px, 2.6vw, 22px));
   font-family: inherit;
   padding: clamp(12px, 2vw, 16px);
   border: 1px solid var(--border);
@@ -675,7 +675,7 @@ a {
   box-shadow: none;
 }
 .jamo-big {
-  font-size: clamp(56px, 12vw, 120px);
+  font-size: calc(var(--font-scale, 1) * clamp(56px, 12vw, 120px));
   font-weight: 800;
   line-height: 1;
 }
@@ -711,7 +711,7 @@ a {
   color: inherit;
 }
 .word-big {
-  font-size: clamp(36px, 7vw, 72px);
+  font-size: calc(var(--font-scale, 1) * clamp(36px, 7vw, 72px));
   font-weight: 800;
   letter-spacing: 1px;
 }
@@ -773,7 +773,7 @@ a {
   color: #fff;
 }
 .line-current {
-  font-size: clamp(20px, 2.6vw, 30px);
+  font-size: calc(var(--font-scale, 1) * clamp(20px, 2.6vw, 30px));
   line-height: 1.9;
   word-break: keep-all;
   overflow-wrap: anywhere;
@@ -843,4 +843,113 @@ kbd {
     padding: 7px 10px;
     font-size: 13px;
   }
+}
+
+/* ===== 헤더: 음악 플레이어 ===== */
+.music-player {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 180px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+.music-btn {
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 13px;
+  padding: 2px 4px;
+  line-height: 1;
+}
+.music-btn:disabled {
+  color: var(--muted);
+  cursor: default;
+}
+.music-name {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 96px;
+}
+.gear {
+  font-size: 16px;
+  padding: 6px 10px;
+}
+
+/* ===== 설정 모달 ===== */
+.settings-modal {
+  max-width: 420px;
+  text-align: left;
+}
+.settings-modal h2 {
+  text-align: center;
+}
+.set-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.set-row > label {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+  white-space: nowrap;
+}
+.set-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  justify-content: flex-end;
+}
+.set-control input[type='range'] {
+  flex: 1;
+  max-width: 180px;
+  accent-color: var(--accent);
+}
+.set-val {
+  font-size: 13px;
+  color: var(--muted);
+  min-width: 38px;
+  text-align: right;
+}
+.seg {
+  display: flex;
+  gap: 4px;
+}
+.seg-btn {
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--muted);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.seg-btn.active {
+  background: var(--accent);
+  color: #04130b;
+  border-color: var(--accent);
+}
+:root[data-theme='light'] .seg-btn.active {
+  color: #fff;
+}
+.set-hint {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 14px 0 0;
+}
+.set-hint code {
+  background: var(--panel-2);
+  padding: 1px 5px;
+  border-radius: 4px;
 }

@@ -6,7 +6,14 @@ import TokenPractice from '../components/TokenPractice'
 import LinePractice from '../components/LinePractice'
 import { saveRecord } from '../features/records/recordStore'
 import { makeJamoSeq, POS_CATEGORIES, type PosCategory } from '../data/positions'
-import { makeLines, makeWords, WORD_THEME_NAMES } from '../data/sentences'
+import {
+  LONG_TOPIC_NAMES,
+  makeLong,
+  makeShort,
+  makeWords,
+  SHORT_TOPIC_NAMES,
+  WORD_THEME_NAMES,
+} from '../data/sentences'
 import type { Mode } from '../types'
 
 interface Completion {
@@ -22,14 +29,14 @@ export default function Practice() {
   const [attempt, setAttempt] = useState(0) // 다시하기용 리마운트 키
   const [category, setCategory] = useState<PosCategory>('기본자리')
   const [theme, setTheme] = useState<string>(WORD_THEME_NAMES[0])
+  const [shortTopic, setShortTopic] = useState<string>(SHORT_TOPIC_NAMES[0])
+  const [longTopic, setLongTopic] = useState<string>(LONG_TOPIC_NAMES[0])
   const [result, setResult] = useState<Completion | null>(null)
 
   const seq = useMemo(() => makeJamoSeq(category, index), [category, index])
   const words = useMemo(() => makeWords(theme, index), [theme, index])
-  const lines = useMemo(
-    () => (mode === '짧은글' || mode === '긴글' ? makeLines(mode, index) : []),
-    [mode, index],
-  )
+  const shortLines = useMemo(() => makeShort(shortTopic, index), [shortTopic, index])
+  const longText = useMemo(() => makeLong(longTopic, index), [longTopic, index])
 
   const handleComplete = useCallback(
     (info: Completion) => {
@@ -56,6 +63,14 @@ export default function Practice() {
     setIndex((i) => i + 1)
   }, [])
 
+  // 서브탭(주제/자리) 변경 공통 처리
+  const pickSub = useCallback((fn: () => void) => {
+    fn()
+    setAttempt(0)
+    setIndex(0)
+    setResult(null)
+  }, [])
+
   // Esc=다시 / 완료 후 Enter=다음
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -72,57 +87,45 @@ export default function Practice() {
   }, [handleRetry, handleNext, result])
 
   // 모드별 자식 (key 가 바뀌면 리마운트 = 초기화)
-  const childKey = `${mode}-${category}-${theme}-${index}-${attempt}`
+  const childKey = `${mode}-${category}-${theme}-${shortTopic}-${longTopic}-${index}-${attempt}`
   let child: React.ReactNode
+  let subTabs: { items: readonly string[]; value: string; onPick: (v: string) => void } | null = null
+
   if (mode === '자리연습') {
     child = <PositionPractice key={childKey} seq={seq} onComplete={handleComplete} />
+    subTabs = { items: POS_CATEGORIES, value: category, onPick: (v) => pickSub(() => setCategory(v as PosCategory)) }
   } else if (mode === '낱말') {
     child = <TokenPractice key={childKey} words={words} onComplete={handleComplete} />
+    subTabs = { items: WORD_THEME_NAMES, value: theme, onPick: (v) => pickSub(() => setTheme(v)) }
+  } else if (mode === '짧은글') {
+    child = <LinePractice key={childKey} lines={shortLines} title="짧은글" onComplete={handleComplete} />
+    subTabs = { items: SHORT_TOPIC_NAMES, value: shortTopic, onPick: (v) => pickSub(() => setShortTopic(v)) }
   } else {
-    child = <LinePractice key={childKey} lines={lines} title={mode} onComplete={handleComplete} />
+    child = (
+      <LinePractice
+        key={childKey}
+        lines={longText.lines}
+        title={`긴글 · ${longText.title}`}
+        onComplete={handleComplete}
+      />
+    )
+    subTabs = { items: LONG_TOPIC_NAMES, value: longTopic, onPick: (v) => pickSub(() => setLongTopic(v)) }
   }
 
   return (
     <div className="card practice-stage">
       <ModeTabs value={mode} onChange={handleModeChange} />
 
-      {/* 자리연습: 자리/자음/모음 선택 */}
-      {mode === '자리연습' && (
+      {subTabs && (
         <div className="sub-tabs">
-          {POS_CATEGORIES.map((c) => (
+          {subTabs.items.map((c) => (
             <button
               key={c}
               type="button"
-              className={`sub-tab${c === category ? ' active' : ''}`}
-              onClick={() => {
-                setCategory(c)
-                setAttempt(0)
-                setIndex(0)
-                setResult(null)
-              }}
+              className={`sub-tab${c === subTabs!.value ? ' active' : ''}`}
+              onClick={() => subTabs!.onPick(c)}
             >
               {c}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* 낱말: 범주(주제) 선택 */}
-      {mode === '낱말' && (
-        <div className="sub-tabs">
-          {WORD_THEME_NAMES.map((t) => (
-            <button
-              key={t}
-              type="button"
-              className={`sub-tab${t === theme ? ' active' : ''}`}
-              onClick={() => {
-                setTheme(t)
-                setAttempt(0)
-                setIndex(0)
-                setResult(null)
-              }}
-            >
-              {t}
             </button>
           ))}
         </div>

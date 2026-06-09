@@ -87,6 +87,7 @@ export function usePositionDrill(
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (finishedRef.current) return
+      if (e.repeat) return // 키 꾹 누름(자동반복) 무시 → 타수 뻥튀기 방지
       if (e.ctrlKey || e.metaKey || e.altKey) return
       const jamo = jamoFromEvent(e)
       if (jamo === null) return

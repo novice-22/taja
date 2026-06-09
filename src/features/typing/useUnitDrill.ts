@@ -31,6 +31,8 @@ export interface UseUnitDrillResult {
     value: string
     onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
     onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
+    onPaste: (e: React.ClipboardEvent<HTMLTextAreaElement>) => void
+    onDrop: (e: React.DragEvent<HTMLTextAreaElement>) => void
     onCompositionStart: () => void
     onCompositionEnd: (e: React.CompositionEvent<HTMLTextAreaElement>) => void
     readOnly: boolean
@@ -186,6 +188,11 @@ export function useUnitDrill(
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      // 키 꾹 누름(OS 자동반복) 차단 → 스페이스/글자 꾹 눌러 타수 뻥튀기 방지
+      if (e.repeat) {
+        e.preventDefault()
+        return
+      }
       if (e.key !== 'Enter') return
       e.preventDefault()
       if (finishedRef.current) return
@@ -201,6 +208,14 @@ export function useUnitDrill(
       }
     },
     [advance, kind],
+  )
+
+  // 붙여넣기/드롭 차단 → 한 번에 긴 텍스트 넣어 타수 뻥튀기 방지
+  const blockInsert = useCallback(
+    (e: React.ClipboardEvent<HTMLTextAreaElement> | React.DragEvent<HTMLTextAreaElement>) => {
+      e.preventDefault()
+    },
+    [],
   )
 
   const handleCompositionStart = useCallback(() => {
@@ -260,6 +275,8 @@ export function useUnitDrill(
       value: input,
       onChange: handleChange,
       onKeyDown: handleKeyDown,
+      onPaste: blockInsert,
+      onDrop: blockInsert,
       onCompositionStart: handleCompositionStart,
       onCompositionEnd: handleCompositionEnd,
       readOnly: finished,
